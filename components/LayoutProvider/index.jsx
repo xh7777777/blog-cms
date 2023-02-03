@@ -11,9 +11,10 @@ import {
     CommentOutlined
   } from '@ant-design/icons';
   import { Layout, Menu, theme } from 'antd';
-  import React, { useState } from 'react';
+  import React, { useRef, useState } from 'react';
   import Link from 'next/link';
   import Image from 'next/image';
+import { useRouter } from 'next/router';
   const { Header, Sider, Content } = Layout;
   function getItem(label, key, icon,) {
     return {
@@ -32,23 +33,30 @@ import {
   ];
   const LayoutProvider = ({children}) => {
     const [collapsed, setCollapsed] = useState(false);
+    const [select,setSelect] = useState('home')
+    const router = useRouter()
     const {
       token: { colorBgContainer },
     } = theme.useToken();
     function handleClick() {
         signOut({redirect: false, callbackUrl: "/login"})
     }
+    function onChooseMenu({key}) {
+        setSelect(key)
+        router.push('/'+key)
+    }
     return (
       <Layout className={classes.layout}>
         <Sider trigger={null} collapsible collapsed={collapsed} className={classes.sider}>
-            <Link href='/home'>
+            <a onClick={() => onChooseMenu({key:'home'})}>
                 <Image className={classes.img} src='/icons/blogger-blog-svgrepo-com.svg' alt="logo" width={40} height={40}></Image>
                 <h1 className={classes.logo}>777の博客后台</h1>
-            </Link>
+            </a>
           <Menu
             mode="inline"
-            defaultSelectedKeys={['home']}
             items={items}
+            onSelect={onChooseMenu}
+            selectedKeys={select}
           />
         </Sider>
         <Layout>
@@ -67,10 +75,8 @@ import {
           </Header>
           <Content
             style={{
-              margin: '24px 16px',
-              padding: 24,
+              margin: '40px 40px',
               minHeight: 280,
-              background: colorBgContainer,
             }}
           >
             {children}

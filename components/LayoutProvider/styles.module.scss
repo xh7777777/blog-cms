@@ -45,7 +45,7 @@
             transition: all 0.3s ease;
             &:hover {
                 transform: scale(110%);
-                color: lightcoral;
+                color: var(--tertiary);
             }
         }
     }

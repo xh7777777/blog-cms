@@ -1,0 +1,22 @@
+@mixin cardStyle($theme: #ffffff) {
+    background: $theme;
+    box-shadow: 1.5px 1.5px 3px rgba(0,0,0, .25);
+    border-radius: 0;
+}
+
+.row1 {
+    margin-bottom: 5vh;
+    .info {
+        text-align: center;
+        @include cardStyle;
+        p {
+            padding-top: 5px;
+            font-size: 18px;
+        }
+        div {
+            padding: 5px 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+    }
+}

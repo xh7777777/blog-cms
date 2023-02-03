@@ -4,16 +4,23 @@ import { useSession } from 'next-auth/react'
 import React from 'react'
 import { useRouter } from 'next/router'
 import LayoutProvider from '@/components/LayoutProvider'
+import { ConfigProvider } from 'antd'
 export default function App({ Component, pageProps: { session, ...pageProps } }) {
   return (
     <SessionProvider session={session} refetchInterval={5 * 60}>
-          {Component.isLogin ? <Component {...pageProps} /> :
+      <ConfigProvider theme={{
+      token: {
+        colorPrimary: '#8fceff',
+      },
+    }}>
+      {Component.isLogin ? <Component {...pageProps} /> :
               <Auth auth={Component.auth}>
                 <LayoutProvider>  
                   <Component {...pageProps} />
                 </LayoutProvider>
               </Auth>
           }
+      </ConfigProvider>
     </SessionProvider>
   )
 }
@@ -34,3 +41,4 @@ function Auth({ children , auth}) {
   }
   return <div>Loading...</div>
 }
+
