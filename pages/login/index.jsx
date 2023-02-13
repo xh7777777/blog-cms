@@ -1,30 +1,27 @@
-import React, { useEffect } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { signIn } from 'next-auth/react';
 import { Card, Button, Form, Input, message } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import classes from './styles.module.scss'
 import { useRouter } from 'next/router';
 import { getSession } from 'next-auth/react';
+import { loginAPI } from '@/API';
+import { tokenDispatchContext } from '@/components/ContextProvider';
 function LoginPage() {
     const [messageApi, contextHolder] = message.useMessage();
     const router = useRouter()
-    useEffect( ()=> {
-      (async function check() {
-          const session = await getSession()
-          if(session) {
-            router.replace('/home')
-          }
-      })()
-    })
+    const tokenDispatch = useContext(tokenDispatchContext)
     async function loginFn(formData) {
-        const res = await signIn('credentials', 
-        {redirect: false, username:formData.username,
-        password:formData.password},)
-        if(!res.error){
-            router.push('/home')
-        } else {
-            messageApi.info('登录失败')
+      try {
+        const {data:res} = await loginAPI({username:formData.username, password: formData.password})
+        if(res.errorCode === 1) {
+          localStorage.setItem('token',res.data.token)
+          tokenDispatch(res.data.token)
+          router.push('/home')
         }
+      } catch(error) {
+        messageApi.info('登录失败')
+      }
     }
   return (
     <div className='login'>

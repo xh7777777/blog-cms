@@ -8,6 +8,7 @@ function EditTag({message}) {
     const [fresh,setFresh] = useState(false)
     const [inputValue,setInputValue] = useState('')
     const [inputVisible, setInputVisible] = useState(false);
+    const [inputChosen, setInputChosen] = useState('')
     const inputRef = useRef('')
     const {data, loading} = useRequest(getTagAPI, {cacheKey:'tagsCache', refreshDeps: [fresh]})
     useEffect(() => {
@@ -15,15 +16,14 @@ function EditTag({message}) {
           inputRef.current?.focus();
         }
       }, [inputVisible]);
-    const getRanColor = useCallback( ()=> {
-        const color = ['megenta','red','blue','volcano','orange','gold',
-    'lime','green','cyan','geekblue','purple']
-        return color[Math.floor(Math.random()*color.length)]
-    })
     if(!data && loading) return <Spin />
     const tags = data.data.data
-    const showInput = () => {
+    const showInput = (val) => {
+        if(val !== 'add') {
+          setInputValue(val)
+        }
         setInputVisible(true);
+        setInputChosen(val)
       };
     async function handleInputConfirm() {
         if(inputValue === '') {
@@ -41,6 +41,22 @@ function EditTag({message}) {
             message.info(res.msg)
         }
     }
+    async function handleInputEditConfirm(id) {
+      if(inputValue === '') {
+          message.info('输入不能为空')
+          setInputVisible(false)
+          return 
+      }
+      const {data:res} = await editTagAPI({tag_name:inputValue, id})
+      if(res.errorCode === 1) {
+          message.info('修改成功')
+          setFresh(!fresh)
+          setInputValue('')
+          setInputVisible(false)
+      } else {
+          message.info(res.msg)
+      }
+  }
     async function handleClose(id) {
         const {data:res} = await deleteTagAPI(id)
         if(res.errorCode === 1) {
@@ -52,18 +68,30 @@ function EditTag({message}) {
     }
     const forMap = (tag) => {
         const tagElem = (
-
+        (inputVisible && inputChosen === tag.tag_name) ?
+        <Input
+         ref={inputRef}
+          type="text"
+          size="small"
+          style={{ width: 78 }}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onBlur={() => handleInputEditConfirm(tag.tag_id)}
+          onPressEnter={() => handleInputEditConfirm(tag.tag_id)}
+        />: 
           <Tag
-            closable
-            color = {getRanColor}
-            onClose={(e) => {
-              e.preventDefault();
-              handleClose(tag.tag_id);
-            }}
-          >
-            {tag.tag_name}
-          </Tag>
-        );
+          className={classes.tagItem}
+          closable
+          color = {tag.color}
+          onClose={(e) => {
+            e.preventDefault();
+            handleClose(tag.tag_id);
+          }}
+          onClick = {()=> {showInput(tag.tag_name)}}
+        >
+          {tag.tag_name}
+        </Tag> 
+         );
         return (
           <span
             key={tag.tag_id}
@@ -80,8 +108,8 @@ function EditTag({message}) {
     <Card  className={classes.tag} title='标签'> 
         <div style={{marginBottom: 16,}}>
           {tagChild}
-      </div>
-        {inputVisible ? (
+        </div>
+        {(inputVisible && inputChosen === 'add') ? (
         <Input
          ref={inputRef}
           type="text"
@@ -93,7 +121,7 @@ function EditTag({message}) {
           onPressEnter={handleInputConfirm}
         />
       ) : (
-        <Tag onClick={showInput}>
+        <Tag onClick={() => showInput('add')}>
           <PlusOutlined /> 新增
         </Tag>
       )}

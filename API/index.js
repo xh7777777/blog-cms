@@ -152,3 +152,56 @@ export const deleteCateAPI = (id) => {
         method:'delete',
     })
 }
+
+export const createArticleAPI = (data) => {
+    return request({
+        url: `/article`,
+        method:'post',
+        data
+    })
+}
+
+export const getArticleTableAPI = (pageIndex,pageSize) => {
+    return request({
+        url: `/article/table?pageIndex=${pageIndex}&pageSize=${pageSize}`,
+        method:'post',
+        data: {
+            
+        }
+    })
+}
+
+export const deleteArticleAPI = (id) => {
+    return request({
+        url: `/article/${id}`,
+        method:'delete'
+    })
+}
+
+export const getArticleDetailAPI = (id) => {
+    return request({
+        url: `/article/detail/${id}`
+    })
+}
+
+
+export const getPicAPi = (url) => {
+    return request({
+        url
+    })
+}
+
+export const getAboutAPI = () => {
+    return request({
+        url:'/about'
+    })
+}
+
+export const updateAboutAPI = (content) => {
+    return request({
+        url:'/about',
+        method:'put',
+        data:{content}
+    })
+}
+

@@ -1,5 +1,6 @@
 import classes from './styles.module.scss'
 import { signOut } from 'next-auth/react';
+import { tokenDispatchContext } from '../ContextProvider';
 import {
     UserOutlined,
     UnorderedListOutlined,
@@ -11,7 +12,7 @@ import {
     CommentOutlined
   } from '@ant-design/icons';
   import { Layout, Menu, theme } from 'antd';
-  import React, { useRef, useState } from 'react';
+  import React, { useContext, useRef, useState , useMemo} from 'react';
   import Link from 'next/link';
   import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -33,16 +34,20 @@ import { useRouter } from 'next/router';
   ];
   const LayoutProvider = ({children}) => {
     const [collapsed, setCollapsed] = useState(false);
-    const [select,setSelect] = useState('home')
+    const tokenDispatch = useContext(tokenDispatchContext)
     const router = useRouter()
+    const select = useMemo(() => {
+      return router.asPath.slice(1)
+    })
     const {
       token: { colorBgContainer },
     } = theme.useToken();
     function handleClick() {
-        signOut({redirect: false, callbackUrl: "/login"})
+        localStorage.removeItem('token');
+        tokenDispatch(null)
+        router.push('/login')
     }
     function onChooseMenu({key}) {
-        setSelect(key)
         router.push('/'+key)
     }
     return (
