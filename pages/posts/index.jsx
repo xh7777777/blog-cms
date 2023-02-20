@@ -4,17 +4,18 @@ import { getCateAPI, getTagAPI } from '@/API'
 import classes from './styles.module.scss'
 import { useRequest } from 'ahooks'
 import WriteArticle from '@/components/posts/WriteArticle'
-import { createArticleAPI, getArticleTableAPI, getArticleDetailAPI,deleteArticleAPI} from '@/API'
+import { createArticleAPI, getArticleTableAPI, getArticleDetailAPI,deleteArticleAPI,uploadArticleCover, updateArticleAPI} from '@/API'
 import MdRender from '@/components/MdRender'
-import UploadImg from '@/components/posts/UploadImg'
+import Image from 'next/image'
+
 function Posts() {
   const [edit,setEdit] = useState(false)
   const [vd,setVd] = useState('')
   const [open,setOpen] = useState(false)
+  const [uploadOpen, setUploadOpen] = useState(false)
   const [loading,setLoading] = useState(false)
   const [tableData,setTableData] = useState([])
   const [watch,setWatch] = useState(false)
-  const [imageUrl, setImageUrl] = useState();
   const [currentRecord, setCurrentRecord] = useState(null);
   const [artDetail,setArtDetail] = useState('')
   const [tableParams, setTableParams] = useState({
@@ -29,6 +30,7 @@ function Posts() {
   const {data:tags, loading:load3} = useRequest(getTagAPI,{cacheKey:'tagsCache'})
   const formSearchRef = useRef(null)
   const formCreateRef = useRef(null)
+  const formUploadRef = useRef(null)
   useEffect(() => {
     (async function() {
       if(!loading) setLoading(true)
@@ -43,7 +45,7 @@ function Posts() {
           },
         });
       }
-      if(!artInfos[0].key){
+      if(artInfos && !artInfos[0]?.key){
         artInfos.forEach(item => 
           {
             item.key = item.art_id
@@ -89,6 +91,12 @@ function Posts() {
       ),
     },
     {
+      title: '文章封面',
+      key: 'cover',
+      dataIndex: 'cover',
+      render: (_,{cover}) => (<Image src={cover} width={80} height={80} alt='文章封面'/>)
+    },
+    {
       title: '创建时间',
       dataIndex: 'create_time',
       key: 'create_time',
@@ -99,6 +107,7 @@ function Posts() {
       render: (_, record) => (
         <Space size="middle">
           <a onClick = {() => showArt(record.art_id)}>查看</a>
+          <a onClick = {() => handleUpload(record)}>上传封面</a>
           <a onClick = {() => editArt(record)}>编辑</a>
           <Popconfirm
             title="删除文章"
@@ -113,14 +122,17 @@ function Posts() {
       ),
     },
   ];
+  function handleUpload(record) {
+    setCurrentRecord(record);
+    setUploadOpen(true);
+  }
   async function handleDelete(id) {
     const {data:res} = await deleteArticleAPI(id) 
-    console.log(res)
     if(res.errorCode === 1) {
       messageApi.info('删除成功')
     }
   }
-  async function showArt(art_id) {
+  async function showArt(art_id) {cate
     const {data:res} = await getArticleDetailAPI(art_id)
     setArtDetail(res.data[0].content)
     setWatch(true)
@@ -136,18 +148,31 @@ function Posts() {
     return {value:cate.cate_id+'',label:cate.cate_name}
   })
   const tagsOption = tags.data.data.map(tag => {
-    return {value:tag.tag_id,label:tag.tag_name}
+    return {value:tag.tag_id+'',label:tag.tag_name}
   })
   async function onFinish(formData) {
     if(edit) {
-
+      const article = {
+        title: formData.title,
+        tag_ids : formData.tag.join(' '),
+        category_id: formData.cate,
+        content: vd.getValue(),
+        description:formData.description
+      }
+      const {data:res} = await updateArticleAPI(article,currentRecord.art_id)
+      if(res.errorCode === 1) {
+        messageApi.info('创建成功')
+        setOpen(false)
+      } else {
+        messageApi.info('出错了')
+      }
     } else {
       const article = {
         title: formData.title,
         tag_ids : formData.tag.join(' '),
         category_id: formData.cate,
         content: vd.getValue(),
-        cover:imageUrl
+        description:formData.description
       }
       const {data:res} = await createArticleAPI(article)
       if(res.errorCode === 1) {
@@ -158,8 +183,11 @@ function Posts() {
       }
     }
   }
+  function handleNew() {
+    setEdit(false);
+    setOpen(true)
+  }
   function editArt(record) {
-    console.log(record)
     setEdit(true)
     setCurrentRecord(record)
     setOpen(true)
@@ -168,6 +196,17 @@ function Posts() {
   }
   async function handleOk() {
     submitRef.current.click()
+  }
+  async function uploadCoverFn(e) {
+    e.preventDefault();
+    let data = new FormData(formUploadRef.current);
+    const {data:res} = await uploadArticleCover(data);
+    if(res.code === 200) {
+      messageApi.info('上传成功')
+      setUploadOpen(false);
+    } else {
+      messageApi.info('上传失败，请重新上传')
+    }
   }
   const handleTableChange = (pagination) => {
     setTableParams({
@@ -209,7 +248,7 @@ function Posts() {
     <Card className={classes.artTable}> 
       <div className={classes.title}>
         <h1>文章管理</h1>
-          <Button type='primary' onClick = {()=> setOpen(true)}>+ 新建</Button>
+          <Button type='primary' onClick = {handleNew}>+ 新建</Button>
       </div>
       <Table columns={columns} dataSource={tableData} pagination={tableParams.pagination}  onChange={handleTableChange} loading={loading}/>
     </Card>
@@ -225,11 +264,14 @@ function Posts() {
       >
         <Card>
           <Form ref={formCreateRef} onFinish={onFinish}> 
-          <Form.Item label='标题：' name='title' rules={[{required:true, message:'不能为空'}]} style={{ width: '50vw' }}>
+          <Form.Item label='标题：' name='title' rules={[{required:true, message:'不能为空'}]} style={{ width: '50vw' }} initialValue={edit?currentRecord?.title:''}>
+            <Input/>
+          </Form.Item>
+          <Form.Item label='关键字：' name='keyword' rules={[{required:true, message:'不能为空'}]} style={{ width: '50vw' }} initialValue={edit?currentRecord?.keyword:''}>
             <Input />
           </Form.Item>
-          <Form.Item label='关键字：' name='keyword' rules={[{required:true, message:'不能为空'}]} style={{ width: '50vw' }}>
-            <Input />
+          <Form.Item label='文章描述：' name='description' rules={[{required:true, message:'不能为空'}]} style={{ width: '50vw' }} initialValue={edit?currentRecord?.description:''}>
+            <Input.TextArea/>
           </Form.Item>
           <Form.Item label='分类：' name='cate' rules={[{required:true, message:'不能为空'}]} style={{ width: '50vw' }}>
           <Select
@@ -239,15 +281,11 @@ function Posts() {
           <Form.Item label='标签：' name='tag' rules={[{required:true, message:'不能为空'}]} style={{ width: '50vw' }} >
               <Select
               mode="tags"
-              // onChange={handleChange}
               options={tagsOption}
             />
           </Form.Item>
            <Form.Item name='content'>
             <WriteArticle setVd={setVd} value = {edit?currentRecord.content : ''}/>
-           </Form.Item>
-           <Form.Item name='cover' >
-              <UploadImg imageUrl={imageUrl} setImageUrl={setImageUrl}/>
            </Form.Item>
            <Form.Item>
             <Button
@@ -271,6 +309,19 @@ function Posts() {
         style={{top:0}}
       >
         <MdRender content={artDetail}/>
+      </Modal>
+      {/* 上传文章封面图 */}
+      <Modal 
+        title="上传封面"
+        open={uploadOpen}
+        closable
+        onCancel={() => setUploadOpen(false)}
+        footer=''>
+        <form ref={formUploadRef} onSubmit = {(e) => uploadCoverFn(e)}>
+               <input type="file" name="file" accept="image/*" />
+               <input type="text" name='id'  defaultValue={currentRecord?.art_id} style={{display:'none'}}/>
+               <input type="submit" />
+        </form>
       </Modal>
     </>
   

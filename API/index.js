@@ -160,11 +160,17 @@ export const createArticleAPI = (data) => {
         data
     })
 }
+export const updateArticleAPI = (data,id) => {
+    return request({
+        url: `/article/${id}`,
+        method:'put',
+        data
+    })
+}
 
 export const getArticleTableAPI = (pageIndex,pageSize) => {
     return request({
         url: `/article/table?pageIndex=${pageIndex}&pageSize=${pageSize}`,
-        method:'post',
         data: {
             
         }
@@ -184,6 +190,16 @@ export const getArticleDetailAPI = (id) => {
     })
 }
 
+export const uploadArticleCover = (formData) => {
+    return request({
+        url: '/article/upload/cdn',
+        method:'post',
+        data: formData,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
 
 export const getPicAPi = (url) => {
     return request({
@@ -202,6 +218,61 @@ export const updateAboutAPI = (content) => {
         url:'/about',
         method:'put',
         data:{content}
+    })
+}
+
+export const getWisdomAPI = () => {
+    return request({
+        url:'/about/wisdom'
+    })
+}
+export const createWisdomAPI = (content) => {
+    return request({
+        url:'/about/wisdom',
+        method:'put',
+        data:{
+            content
+        }
+    })
+}
+export const editWisdomAPI = ({id,content}) => {
+    return request({
+        url:`/about/wisdom/${id}`,
+        method:'post',
+        data: {
+            content
+        }
+    })
+}
+export const deleteWisdomAPI = (id) => {
+    return request({
+        url:`/about/wisdom/${id}`,
+        method:'delete'
+    })
+}
+
+export const getCoverAPI = () => {
+    return request({
+        url:'/about/cover'
+    })
+}
+
+export const deleteCoverAPI = (id) => {
+    return request({
+        url:`/about/cover/${id}`,
+        method:'delete'
+    })
+}
+
+export const createCoverAPI = (formData) => {
+    console.log(formData)
+    return request({
+        url:'/about/cover',
+        method:'put',
+        data:formData,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
     })
 }
 

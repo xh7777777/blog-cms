@@ -1,5 +1,7 @@
 import React, { Fragment, useEffect } from 'react'
 import {Row, Col, Card, Input ,Button,Space,message} from 'antd'
+import Covers from '@/components/home/Covers'
+import Wisdoms from '@/components/home/Wisdoms'
 import classes from './index.module.scss'
 import EditCate from '@/components/home/EditCate'
 import EditTag from '@/components/home/EditTag'
@@ -34,6 +36,14 @@ function Home() {
               <EditTag message={messageApi}/>
           </Col>
       </Row>
+      {/* <Row gutter={24} justify='space-between' className={classes.row2}>
+          <Col lg={{span:15}} sm = {{span:24}} xs={{span:24}}>
+            <Wisdoms message={messageApi}/>
+          </Col>
+          <Col lg={{span:8}}  sm = {{span:24}} xs={{span:24}}>
+              <Covers message={messageApi}/>
+          </Col>
+      </Row> */}
     </Fragment>
   )
 }

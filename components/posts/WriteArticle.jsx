@@ -39,10 +39,10 @@ function WriteArticle({vd, setVd, value = ''}) {
           url: 'http://localhost:3000/article/upload',
           multiple: false,
           accept: 'image/*',
-          fieldName: 'avatar',
+          fieldName: 'file',
           success(_, res) {
             vditor.insertValue(
-              `![${JSON.parse(res).data.name}](${JSON.parse(res).data.imgPath})`,
+              `![${JSON.parse(res).data.name}](${JSON.parse(res).data.url})`,
             );
           },
         },
