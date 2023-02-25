@@ -57,7 +57,6 @@ function Posts() {
     })()
   }, [JSON.stringify(tableParams)], vd, currentRecord)
   if(!cates || !tags  || load1 ||load3) return <Spin/>
- 
   const columns = [
     {
       title: '文章标题',
@@ -118,10 +117,14 @@ function Posts() {
           >
             <a>删除</a>
           </Popconfirm>
+          <a onClick = {() => handleDownload(record)}>下载markdown</a>
         </Space>
       ),
     },
   ];
+  async function handleDownload(record) {
+    console.log('待开发')
+  }
   function handleUpload(record) {
     setCurrentRecord(record);
     setUploadOpen(true);
@@ -278,7 +281,7 @@ function Posts() {
             options={cateOption}
           />
           </Form.Item>
-          <Form.Item label='标签：' name='tag' rules={[{required:true, message:'不能为空'}]} style={{ width: '50vw' }} >
+          <Form.Item label='标签：' name='tag' rules={[{required:true, message:'不能为空'}]} style={{ width: '50vw' }}>
               <Select
               mode="tags"
               options={tagsOption}
